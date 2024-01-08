@@ -1,22 +1,8 @@
-streets_data = {
-    '8-MI DEKEMVRI': {'city': 'SOFIA'},
-    'ALEKSANDAR MALINOV': {'city': 'SOFIA'},
-    'TSARIGRADSKO SHOSE': {'city': 'SOFIA'},
-    'HRISTO BOTEV': {'city': 'VARNA'},
-    '3-TI MART': {'city': 'SVISHTOV'},
-    'PATRIARH EVTIMIJ': {'city': 'SVISHTOV'},
-    'TSAR OSVOBODITEL': {'city': 'SVISHTOV'},
-    'DUNAVSKA': {'city': 'VIDIN'},
-    'BOJCHO ZHELEV': {'city': 'PROVADIA'},
-}
+import csv
+from itertools import permutations
 
-cities_data = {
-    'VARNA',
-    'SOFIA',
-    'SVISHTOV',
-    'PROVADIA',
-    'VIDIN'
-}
+streets_data = {}
+cities_data = []
 
 def CheckPerfectAddress(input):
     cityNameFound = None
@@ -25,17 +11,32 @@ def CheckPerfectAddress(input):
     input = input.upper()
     inputSet = set(input.split())
     highestPercentage = 0.0
+
+    # Generate all possible combinations of different lengths
+    all_combinations = set()
+
+    for r in range(1, len(inputSet) + 1):
+        combinations_of_length_r = set(' '.join(combination) for combination in permutations(inputSet, r))
+        all_combinations = all_combinations.union(combinations_of_length_r)
+
+    # Now, all_combinations contains all unique combinations of different lengths with a space in between the strings
+    print(all_combinations)
+    
+    all = inputSet.union(all_combinations)
+    
+    print(all)
     
     for city in cities_data:
-        if (cityNameFound != None):
+        if (cityNameFound != None and highestPercentage == 100):
             break
-        for inputElement in inputSet:
+        for inputElement in all:
             if (city == inputElement):
                 cityNameFound = city
+                highestPercentage = 100
                 break
             currPercentage = similarity_percentage(city, inputElement)
             if (currPercentage > 30.0 and currPercentage > highestPercentage):
-                print('Is the city', city, '?')
+                print('Is the city', city, '?',inputElement, "looks a lot like it")
                 cityNameFound = city
                 highestPercentage = currPercentage
 
@@ -51,15 +52,16 @@ def CheckPerfectAddress(input):
     highestPercentage = 0.0
 
     for street in availableStreets:
-        if (streetNameFound != None):
+        if (streetNameFound != None and highestPercentage == 100):
             break
-        for inputElement in inputSet:
+        for inputElement in all:
             if (street == inputElement):
                 streetNameFound = street
+                highestPercentage = 100
                 break
             currPercentage = similarity_percentage(street, inputElement)
             if (currPercentage > 30.0 and currPercentage > highestPercentage):
-                print('Is the street', street, '?')
+                print('Is the street', street, '?', inputElement, "looks a lot like it")
                 streetNameFound = street
                 highestPercentage = currPercentage
 
@@ -106,10 +108,24 @@ def similarity_percentage(s1, s2):
     return max(similarity1, similarity2) * 100
 
 def main():
+    # Read the CSV file and structure the data
+    with open("./data.csv", 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            street = row['street']
+            city = row['city']
+            streets_data[street] = {'city': city}
+            if (city not in cities_data):
+                cities_data.append(city)
+    print(streets_data)
+    print("\n", cities_data)
+
     while(True):
         inputAddress = input("Enter address: ")
         success = CheckPerfectAddress(inputAddress)
 
         print(success)
+
+
 
 main()
